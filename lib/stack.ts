@@ -11,7 +11,7 @@ export class SpotlitCdkStack extends Stack {
 
     const fn = new Function(this, 'SpotlitApp', {
       runtime: Runtime.NODEJS_20_X,
-      handler: 'index.handler',
+      handler: 'lambda.handler',
       code: Code.fromAsset(svelteKitBuildPath),
       timeout: Duration.seconds(30),
       memorySize: 256,
