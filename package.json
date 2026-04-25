@@ -11,6 +11,9 @@
     "cdk": "cdk"
   },
   "devDependencies": {
+    "@aws-sdk/client-cloudformation": "^3.1037.0",
+    "@aws-sdk/client-dynamodb": "^3.1037.0",
+    "@aws-sdk/lib-dynamodb": "^3.1037.0",
     "@types/jest": "^30",
     "@types/node": "^24.12.2",
     "aws-cdk": "2.1119.0",
