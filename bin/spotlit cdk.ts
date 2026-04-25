@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib/core';
-import { SpotlitCdkStack } from '../lib/spotlit cdk-stack';
+import { SpotlitCdkStack } from '../lib/stack';
 
 const app = new cdk.App();
 new SpotlitCdkStack(app, 'SpotlitCdkStack', {
