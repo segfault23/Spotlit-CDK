@@ -17,7 +17,7 @@
     ]
   },
   "context": {
-    "appUrl": "https://dean42c6d7lx6cbsakkaykc66u0icxys.lambda-url.eu-west-2.on.aws",
+    "appUrl": "https://spotlit.online",
     "@aws-cdk/aws-signer:signingProfileNamePassedToCfn": true,
     "@aws-cdk/aws-ecs-patterns:secGroupsDisablesImplicitOpenListener": true,
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,

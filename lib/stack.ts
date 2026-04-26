@@ -136,6 +136,7 @@ export class SpotlitCdkStack extends Stack {
         COGNITO_USER_POOL_ID: userPool.userPoolId,
         COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
         COGNITO_DOMAIN: cognitoDomain.baseUrl(),
+        ...(appUrl ? { PUBLIC_ORIGIN: appUrl } : {}),
       },
     });
 
