@@ -13,6 +13,7 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 
 export class SpotlitCdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -37,13 +38,19 @@ export class SpotlitCdkStack extends Stack {
     });
 
     // ── Cognito ───────────────────────────────────────────────────────────────
-    // Prerequisites (must exist in SSM before deploying):
+    // Prerequisites (must exist in SSM & Secrets Manager before deploying):
     //   /spotlit/google-client-id     → String      (from Google Cloud Console)
-    //   /spotlit/google-client-secret → SecureString (from Google Cloud Console)
+    //   /spotlit/google-client-secret → Secret manager (from Google Cloud Console)
     // See SETUP.md for the full two-step first-deploy process.
 
     const googleClientId = StringParameter.valueForStringParameter(
       this, '/spotlit/google-client-id',
+    );
+
+    const googleSecret = Secret.fromSecretCompleteArn(
+      this,
+      'GoogleClientSecret',
+      'arn:aws:secretsmanager:eu-west-2:277707120040:secret:/spotlit/google-client-secret-mff2JG'
     );
 
     const userPool = new UserPool(this, 'SpotlitUserPool', {
@@ -65,7 +72,7 @@ export class SpotlitCdkStack extends Stack {
       userPool,
       clientId: googleClientId,
       // SecureString resolved by CloudFormation at deploy time — never in plaintext
-      clientSecretValue: SecretValue.ssmSecure('/spotlit/google-client-secret'),
+      clientSecretValue: googleSecret.secretValue,
       scopes: ['email', 'profile', 'openid'],
       attributeMapping: {
         email: ProviderAttribute.GOOGLE_EMAIL,
