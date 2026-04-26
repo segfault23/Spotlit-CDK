@@ -9,3 +9,4 @@ cdk.out
 
 # Local seed source — gameplay content lives in DynamoDB, not git
 scripts/seed-data.local.mjs
+cdk.context.json

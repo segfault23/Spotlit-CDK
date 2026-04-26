@@ -2,7 +2,7 @@ import { join } from 'path';
 import { Construct } from 'constructs';
 import { Code, Function, FunctionUrlAuthType, HttpMethod, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
-import { CfnOutput, Duration, RemovalPolicy, SecretValue, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Fn, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import {
   AccountRecovery,
   OAuthScope,
@@ -14,9 +14,18 @@ import {
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Distribution, OriginProtocolPolicy, CachePolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { HostedZone, ARecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
+
+export interface SpotlitCdkStackProps extends StackProps {
+  certificateArn: string;
+}
 
 export class SpotlitCdkStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: SpotlitCdkStackProps) {
     super(scope, id, props);
 
     const svelteKitBuildPath = join(__dirname, '../../spotlit/build');
@@ -144,6 +153,39 @@ export class SpotlitCdkStack extends Stack {
         allowedMethods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE],
         allowedOrigins: ['*'],
       },
+    });
+
+    const cert = Certificate.fromCertificateArn(
+      this,
+      'ImportedCert',
+      props.certificateArn
+    );
+
+    console.log(Fn.parseDomainName(url.url));
+    
+    const originDomain = Fn.parseDomainName(url.url);
+
+    const distribution = new Distribution(this, 'SpotlitDistribution', {
+      defaultBehavior: {
+        origin: new HttpOrigin(originDomain, {
+          protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
+        }),
+        cachePolicy: CachePolicy.CACHING_DISABLED,
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+      domainNames: ['spotlit.online'],
+      certificate: cert,
+    });
+    
+    const zone = HostedZone.fromLookup(this, 'Zone', {
+      domainName: 'spotlit.online',
+    });
+
+    new ARecord(this, 'AliasRecord', {
+      zone,
+      target: RecordTarget.fromAlias(
+        new CloudFrontTarget(distribution)
+      ),
     });
 
     // ── Outputs ───────────────────────────────────────────────────────────────
