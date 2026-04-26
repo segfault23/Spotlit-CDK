@@ -115,7 +115,7 @@ export class SpotlitCdkStack extends Stack {
         UserPoolClientIdentityProvider.COGNITO,
         UserPoolClientIdentityProvider.GOOGLE,
       ],
-      authFlows: { userPassword: true, userSrp: true },
+      authFlows: { userPassword: true, userSrp: true, adminUserPassword: true },
       preventUserExistenceErrors: true,
     });
 
