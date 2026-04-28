@@ -15,13 +15,14 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { Distribution, OriginProtocolPolicy, CachePolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { CachePolicy, Distribution, OriginProtocolPolicy, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { HostedZone, ARecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
 export interface SpotlitCdkStackProps extends StackProps {
   certificateArn: string;
+  webAclId?: string;
 }
 
 export class SpotlitCdkStack extends Stack {
@@ -173,9 +174,14 @@ export class SpotlitCdkStack extends Stack {
         }),
         cachePolicy: CachePolicy.CACHING_DISABLED,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        // Forward all query strings, headers, and cookies to Lambda
+        originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
       },
       domainNames: ['spotlit.online'],
       certificate: cert,
+      // Preserve any WAF Web ACL that was associated with this distribution.
+      // Pass via: cdk deploy --context webAclId=arn:aws:wafv2:us-east-1:...
+      ...(props.webAclId ? { webAclId: props.webAclId } : {}),
     });
     
     const zone = HostedZone.fromLookup(this, 'Zone', {

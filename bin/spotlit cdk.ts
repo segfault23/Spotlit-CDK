@@ -9,8 +9,11 @@ const certStack = new CertStack(app, 'CertStack', {
   crossRegionReferences: true,
 });
 
+const webAclId = (app.node.tryGetContext('webAclId') as string | undefined) || undefined;
+
 new SpotlitCdkStack(app, 'SpotlitCdkStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
   certificateArn: certStack.certificate.certificateArn,
   crossRegionReferences: true,
+  ...(webAclId ? { webAclId } : {}),
 });
